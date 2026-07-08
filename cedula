@@ -1,0 +1,180 @@
+#include <conio.h>
+#include <stdio.h>
+#include <string>
+#include <stdlib.h>
+#include <windows.h>
+#include <limits>
+#include <iostream>
+using namespace std;
+
+struct Persona {
+    string nombre;
+    string apellido;
+    string cedula;
+    float sueldo;
+};
+
+const int MAX = 50;
+Persona lista[MAX];
+int totalRegistrados = 0;
+
+void gotoxy(int, int);
+bool validarCedula(string);
+bool cedulaExiste(string);
+void registrarPersona();
+void mostrarRegistro();
+
+void gotoxy(int x, int y) {
+    HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD dwPos;
+    dwPos.X = x;
+    dwPos.Y = y;
+    SetConsoleCursorPosition(hcon, dwPos);
+}
+
+void limpiarLinea(int y) {
+    gotoxy(0, y);
+    printf("                                                                                ");
+    gotoxy(0, y);
+}
+
+bool validarCedula(string ced) {
+    if (ced.length() != 10) return false;
+    for (int i = 0; i < 10; i++) {
+        if (ced[i] < '0' || ced[i] > '9') return false;
+    }
+    int provincia = stoi(ced.substr(0, 2));
+    if (provincia < 1 || provincia > 24) return false;
+    int suma = 0;
+    int coef[] = {2, 1, 2, 1, 2, 1, 2, 1, 2};
+    int digitoVerificador = ced[9] - '0';
+    for (int i = 0; i < 9; i++) {
+        int valor = (ced[i] - '0') * coef[i];
+        suma += (valor >= 10) ? valor - 9 : valor;
+    }
+    int resultado = 10 - (suma % 10);
+    if (resultado == 10) resultado = 0;
+    return (resultado == digitoVerificador);
+}
+
+bool cedulaExiste(string ced) {
+    for (int i = 0; i < totalRegistrados; i++) {
+        if (lista[i].cedula == ced) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void registrarPersona() {
+    system("cls");
+    limpiarLinea(3);
+    gotoxy(20, 3); printf("=== REGISTRO DE PERSONAS ===");
+    if (totalRegistrados >= MAX) {
+        limpiarLinea(6);
+        gotoxy(10, 6); printf("Ya no hay espacio para mas registros");
+        limpiarLinea(8);
+        gotoxy(10, 8); printf("Presione una tecla para volver...");
+        getch();
+        return;
+    }
+    Persona nueva;
+    bool cedulaValida = false;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    while (!cedulaValida) {
+        limpiarLinea(6);
+        gotoxy(10, 6); printf("Cedula: ");
+        getline(cin, nueva.cedula);
+        limpiarLinea(8);
+        if (!validarCedula(nueva.cedula)) {
+            gotoxy(10, 8); printf("Cedula invalida. Intente nuevamente.");
+        } else if (cedulaExiste(nueva.cedula)) {
+            gotoxy(10, 8); printf("Esta cedula ya fue registrada. No se puede repetir.");
+        } else {
+            gotoxy(10, 8); printf("Cedula valida");
+            cedulaValida = true;
+        }
+    }
+    limpiarLinea(9);
+    gotoxy(10, 9); printf("Nombre   : ");
+    getline(cin, nueva.nombre);
+    limpiarLinea(10);
+    gotoxy(10, 10); printf("Apellido : ");
+    getline(cin, nueva.apellido);
+    limpiarLinea(11);
+    gotoxy(10, 11); printf("Sueldo   : $");
+    scanf("%f", &nueva.sueldo);
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    lista[totalRegistrados] = nueva;
+    totalRegistrados++;
+    limpiarLinea(13);
+    gotoxy(10, 13); printf("Registro guardado correctamente!");
+    limpiarLinea(15);
+    gotoxy(10, 15); printf("Presione una tecla para continuar...");
+    getch();
+}
+
+void mostrarRegistro() {
+    system("cls");
+    limpiarLinea(2);
+    gotoxy(20, 2); printf("=== LISTA DE REGISTROS ===");
+    if (totalRegistrados == 0) {
+        limpiarLinea(5);
+        gotoxy(10, 5); printf("No hay personas registradas aun.");
+    } else {
+        limpiarLinea(5);
+        gotoxy(5, 5); printf("N° | Cedula       | Nombre          | Apellido        | Sueldo");
+        limpiarLinea(6);
+        gotoxy(5, 6); printf("-----------------------------------------------------------------");
+        for (int i = 0; i < totalRegistrados; i++) {
+            limpiarLinea(7 + i);
+            gotoxy(5, 7 + i);
+            printf("%2d | %s | %-15s | %-15s | $%.2f",
+                   i + 1, lista[i].cedula.c_str(),
+                   lista[i].nombre.c_str(), lista[i].apellido.c_str(),
+                   lista[i].sueldo);
+        }
+    }
+    limpiarLinea(9 + totalRegistrados);
+    gotoxy(5, 9 + totalRegistrados);
+    printf("Presione una tecla para volver al menu...");
+    getch();
+}
+
+int main() {
+    int opcion;
+    do {
+        system("cls");
+        limpiarLinea(2);
+        gotoxy(20, 2); printf("=== SISTEMA DE REGISTRO ===");
+        limpiarLinea(5);
+        gotoxy(15, 5); printf("1. Ingresar nueva persona");
+        limpiarLinea(6);
+        gotoxy(15, 6); printf("2. Ver registros guardados");
+        limpiarLinea(7);
+        gotoxy(15, 7); printf("3. Salir");
+        limpiarLinea(9);
+        gotoxy(15, 9); printf("Seleccione una opcion: ");
+        cin >> opcion;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        switch (opcion) {
+            case 1:
+                registrarPersona();
+                break;
+            case 2:
+                mostrarRegistro();
+                break;
+            case 3:
+                limpiarLinea(12);
+                gotoxy(15, 12); printf("Saliendo del sistema...");
+                break;
+            default:
+                limpiarLinea(12);
+                gotoxy(15, 12); printf("Opcion no valida. Intente nuevamente.");
+                limpiarLinea(14);
+                gotoxy(15, 14); printf("Presione una tecla...");
+                getch();
+        }
+    } while (opcion != 3);
+    return 0;
+}
