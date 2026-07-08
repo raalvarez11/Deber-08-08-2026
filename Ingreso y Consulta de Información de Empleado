@@ -1,0 +1,83 @@
+#include <conio.h>
+#include <stdio.h>
+#include <string>
+#include <stdlib.h>
+#include <windows.h>  
+#include <limits>
+using namespace std;
+
+// Estructura igual a la original
+struct Persona {
+    string nombre;
+    string apellido;
+    string cedula;
+    float  sueldo;
+};
+
+// Prototipos
+void gotoxy(int, int);
+void gestionarDatos(Persona &, const char *, int, int); // Función unificada
+
+// Función para mover cursor (igual a tu código)
+void gotoxy(int x, int y) {  
+    HANDLE hcon;  
+    hcon = GetStdHandle(STD_OUTPUT_HANDLE);  
+    COORD dwPos;  
+    dwPos.X = x;  
+    dwPos.Y = y;  
+    SetConsoleCursorPosition(hcon, dwPos);  
+} 
+
+/*
+  FUNCIÓN ÚNICA:
+  Parámetros:
+    &per   → referencia a la estructura
+    titulo → texto que irá en la parte superior
+    filaInicio → fila donde empiezan los campos
+    colEtiqueta → columna donde van las etiquetas
+*/
+void gestionarDatos(Persona &per, const char *titulo, int filaInicio, int colEtiqueta) {
+    system("cls");
+
+    // Encabezado centrado
+    gotoxy(20, filaInicio - 2);
+    printf("%s", titulo);
+
+    // --- ETIQUETAS CON CARPINTERÍA ALINEADA ---
+    gotoxy(colEtiqueta, filaInicio);     printf("Nombre    : ");
+    gotoxy(colEtiqueta, filaInicio + 1); printf("Apellido  : ");
+    gotoxy(colEtiqueta, filaInicio + 2); printf("Cédula    : ");
+    gotoxy(colEtiqueta, filaInicio + 3); printf("Sueldo    : $");
+
+    // --- LECTURA O ESCRITURA SEGÚN EL TÍTULO ---
+    if (titulo[0] == 'I') { // Si empieza con "I" → modo ingreso
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpia buffer
+
+        gotoxy(colEtiqueta + 12, filaInicio);     getline(cin, per.nombre);
+        gotoxy(colEtiqueta + 12, filaInicio + 1); getline(cin, per.apellido);
+        gotoxy(colEtiqueta + 12, filaInicio + 2); getline(cin, per.cedula);
+        gotoxy(colEtiqueta + 12, filaInicio + 3); scanf("%f", &per.sueldo);
+    } else { // Si no → modo visualización
+        gotoxy(colEtiqueta + 12, filaInicio);     cout << per.nombre;
+        gotoxy(colEtiqueta + 12, filaInicio + 1); cout << per.apellido;
+        gotoxy(colEtiqueta + 12, filaInicio + 2); cout << per.cedula;
+        gotoxy(colEtiqueta + 12, filaInicio + 3); printf("%.2f", per.sueldo);
+    }
+}
+
+int main() {
+    Persona persona;
+
+    // Llamada parametrizada para ingresar datos
+    gestionarDatos(persona, "INGRESO DE DATOS", 5, 10);
+
+    // Llamada parametrizada para mostrar datos
+    gestionarDatos(persona, "DATOS REGISTRADOS", 5, 10);
+
+    // Espera antes de cerrar
+    gotoxy(10, 10);
+    printf("\nPresione una tecla para salir...");
+    getch();
+
+    return 0;
+}
